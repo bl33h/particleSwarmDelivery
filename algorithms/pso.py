@@ -27,9 +27,6 @@ inertia_weight = 0.5
 cognitive_weight = 1.5
 social_weight = 1.5
 
-#Leer datos desde el archivo CSV
-data = pd.read_csv("./data/routes.csv")
-
 #Inicializar las posiciones y velocidades
 def initialize_particles(num_particles, num_nodes):
     positions = np.array([np.random.permutation(num_nodes) for _ in range(num_particles)])
@@ -62,57 +59,55 @@ def move_particles(positions, velocities, num_nodes):
         new_positions.append(permuted_position)
     return np.array(new_positions)
 
-#Iniciar medición del tiempo
-start_time = time.time()
-
-#Tabla para mostrar resultados
-table = PrettyTable()
-table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
-
 #Ejecutar PSO para cada ruta en el archivo CSV
-for index, row in data.iterrows():
-    route_id = row["route_id"]
-    nodes = ast.literal_eval(row["nodes"])
-    demands = ast.literal_eval(row["demands"])
-    fuel_costs = ast.literal_eval(row["fuel_costs"])
-    distances_raw = ast.literal_eval(row["distances"])
+def run_pso():
+    #Leer datos desde el archivo CSV
+    data = pd.read_csv("./data/routes.csv")
+    
+    #Tabla para mostrar resultados
+    table = PrettyTable()
+    table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
+    
+    #Ejecutar PSO para cada ruta en el archivo CSV
+    for index, row in data.iterrows():
+        route_id = row["route_id"]
+        nodes = ast.literal_eval(row["nodes"])
+        demands = ast.literal_eval(row["demands"])
+        fuel_costs = ast.literal_eval(row["fuel_costs"])
+        distances_raw = ast.literal_eval(row["distances"])
 
-    #Crear una matriz de distancias simétrica para el PSO (llenar diagonales con 0)
-    num_nodes = len(nodes)
-    distances = np.zeros((num_nodes, num_nodes))
-    for i in range(num_nodes - 1):
-        distances[i, i + 1] = distances_raw[i]
-        distances[i + 1, i] = distances_raw[i]  #Distancia simétrica
+        #Crear una matriz de distancias simétrica para el PSO (llenar diagonales con 0)
+        num_nodes = len(nodes)
+        distances = np.zeros((num_nodes, num_nodes))
+        for i in range(num_nodes - 1):
+            distances[i, i + 1] = distances_raw[i]
+            distances[i + 1, i] = distances_raw[i]  #Distancia simétrica
 
-    #Inicializar partículas
-    positions, velocities = initialize_particles(num_particles, num_nodes)
-    best_local_positions = positions.copy()
-    best_global_position = np.random.permutation(num_nodes)
-    best_local_scores = np.full(num_particles, np.inf)
-    best_global_score = np.inf
+        #Inicializar partículas
+        positions, velocities = initialize_particles(num_particles, num_nodes)
+        best_local_positions = positions.copy()
+        best_global_position = np.random.permutation(num_nodes)
+        best_local_scores = np.full(num_particles, np.inf)
+        best_global_score = np.inf
 
-    #Algoritmo PSO para optimizar la ruta de entrega
-    for iteration in range(num_iterations):
-        for i in range(num_particles):
-            score = objective_function(positions[i], distances, fuel_costs, demands)
-            if score < best_local_scores[i]:
-                best_local_scores[i] = score
-                best_local_positions[i] = positions[i].copy()
-            if score < best_global_score:
-                best_global_score = score
-                best_global_position = positions[i].copy()
+        #Algoritmo PSO para optimizar la ruta de entrega
+        for iteration in range(num_iterations):
+            for i in range(num_particles):
+                score = objective_function(positions[i], distances, fuel_costs, demands)
+                if score < best_local_scores[i]:
+                    best_local_scores[i] = score
+                    best_local_positions[i] = positions[i].copy()
+                if score < best_global_score:
+                    best_global_score = score
+                    best_global_position = positions[i].copy()
 
-        for i in range(num_particles):
-            velocities[i] = update_velocity(velocities[i], positions[i], best_local_positions[i], best_global_position, inertia_weight, cognitive_weight, social_weight)
-        positions = move_particles(positions, velocities, num_nodes)
+            for i in range(num_particles):
+                velocities[i] = update_velocity(
+                    velocities[i], positions[i], best_local_positions[i], 
+                    best_global_position, inertia_weight, cognitive_weight, social_weight)
+            positions = move_particles(positions, velocities, num_nodes)
+        
+        #Añadir resultados a la tabla
+        table.add_row([route_id, nodes, [nodes[i] for i in best_global_position], round(best_global_score, 2)])
 
-    #Añadir resultados a la tabla
-    table.add_row([route_id, nodes, [nodes[i] for i in best_global_position], round(best_global_score, 2)])
-
-#Finalizar medición del tiempo
-end_time = time.time()
-execution_time = end_time - start_time
-
-#Imprimir tabla de resultados y tiempo de ejecución
-print(table)
-print(f"Tiempo de ejecución total: {execution_time:.2f} segundos")
+    return table
