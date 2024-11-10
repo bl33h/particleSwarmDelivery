@@ -11,48 +11,35 @@
  * Recursos: VSCode
  * Historial: 
     - Creado el 22/10/2024
-    - Modificado el 22/10/2024
+    - Modificado el 09/11/2024
 """
 
 import numpy as np
+import pandas as pd
+import ast
+from prettytable import PrettyTable
+import time
 
-#Número de nodos (ubicaciones de entrega)
-num_nodes = 10  #Comencemos con algo sencillito (10 ubicaciones de entrega)
-
-#Matriz de distancias entre nodos
-#Generamos una matriz simétrica aleatoria para representar las distancias entre ubicaciones
-np.random.seed(42)  #Para reproducibilidad
-distances = np.random.rand(num_nodes, num_nodes)
-distances = (distances + distances.T) / 2  #Hacerla simétrica
-np.fill_diagonal(distances, 0)  #La distancia de un nodo a sí mismo es 0
-
-#Costos de combustible asociados a cada nodo
-fuel_costs = np.random.uniform(1, 5, num_nodes)  #Genera costos aleatorios entre 1 y 5
-
-#Demanda en cada nodo, modelada como una variable aleatoria
-def simulate_demand(num_nodes):
-    #Probemos con una distribución normal (media=10, desviación estándar=5)
-    return np.random.normal(loc=10, scale=5, size=num_nodes)
-
-demands = simulate_demand(num_nodes)
-
-#Parámetros del PSO
+# Parámetros del PSO
 num_particles = 30
 num_iterations = 100
 inertia_weight = 0.5
 cognitive_weight = 1.5
 social_weight = 1.5
 
+#Leer datos desde el archivo CSV
+data = pd.read_csv("./data/routes.csv")
+
 #Inicializar las posiciones y velocidades
 def initialize_particles(num_particles, num_nodes):
     positions = np.array([np.random.permutation(num_nodes) for _ in range(num_particles)])
-    velocities = np.random.rand(num_particles, num_nodes)  # Velocidades iniciales aleatorias
+    velocities = [np.zeros(num_nodes) for _ in range(num_particles)]  # Velocidades iniciales como swaps
     return positions, velocities
 
-#Función objetivo: calcular el costo total de una ruta
+#Función objetivo: calcular el costo total de una ruta específica
 def objective_function(route, distances, fuel_costs, demands):
-    total_distance = np.sum([distances[route[i], route[i + 1]] for i in range(len(route) - 1)])
-    total_fuel_cost = np.sum([fuel_costs[route[i]] * demands[i] for i in range(len(route))])
+    total_distance = sum(distances[route[i], route[i + 1]] for i in range(len(route) - 1))
+    total_fuel_cost = sum(fuel_costs[route[i]] * demands[route[i]] for i in range(len(route)))
     return total_distance + total_fuel_cost
 
 #Actualización de velocidades y posiciones
@@ -63,35 +50,69 @@ def update_velocity(velocity, position, best_local, best_global, inertia_weight,
     new_velocity = inertia_weight * velocity + cognitive_component + social_component
     return new_velocity
 
-#Función para mover las partículas
-def move_particles(positions, velocities):
-    new_positions = positions + velocities
-    # Asegurarse de que las posiciones sean válidas (en este caso, mantendremos posiciones como permutaciones)
-    new_positions = np.clip(new_positions, 0, len(positions) - 1)
-    return new_positions
+#Función para mover las partículas y mantenerlas como permutaciones
+def move_particles(positions, velocities, num_nodes):
+    new_positions = []
+    for position, velocity in zip(positions, velocities):
+        #Permutar posiciones en base a la velocidad
+        permuted_position = position.copy()
+        for i in range(num_nodes):
+            swap_index = int(abs(velocity[i]) % num_nodes)
+            permuted_position[i], permuted_position[swap_index] = permuted_position[swap_index], permuted_position[i]
+        new_positions.append(permuted_position)
+    return np.array(new_positions)
 
-#Inicializar partículas
-positions, velocities = initialize_particles(num_particles, num_nodes)
-best_local_positions = positions.copy()
-best_global_position = np.random.permutation(num_nodes)
-best_local_scores = np.full(num_particles, np.inf)
-best_global_score = np.inf
+#Iniciar medición del tiempo
+start_time = time.time()
 
-#Algoritmo PSO
-for iteration in range(num_iterations):
-    for i in range(num_particles):
-        score = objective_function(positions[i], distances, fuel_costs, demands)
-        if score < best_local_scores[i]:
-            best_local_scores[i] = score
-            best_local_positions[i] = positions[i].copy()
-        if score < best_global_score:
-            best_global_score = score
-            best_global_position = positions[i].copy()
+#Tabla para mostrar resultados
+table = PrettyTable()
+table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
 
-    for i in range(num_particles):
-        velocities[i] = update_velocity(velocities[i], positions[i], best_local_positions[i], best_global_position, inertia_weight, cognitive_weight, social_weight)
-        positions[i] = move_particles(positions[i], velocities[i])
+#Ejecutar PSO para cada ruta en el archivo CSV
+for index, row in data.iterrows():
+    route_id = row["route_id"]
+    nodes = ast.literal_eval(row["nodes"])
+    demands = ast.literal_eval(row["demands"])
+    fuel_costs = ast.literal_eval(row["fuel_costs"])
+    distances_raw = ast.literal_eval(row["distances"])
 
-#(La mejor solución es la que tiene el menor costo global)
-print("Mejor ruta encontrada: ", best_global_position)
-print("Costo asociado: ", best_global_score)
+    #Crear una matriz de distancias simétrica para el PSO (llenar diagonales con 0)
+    num_nodes = len(nodes)
+    distances = np.zeros((num_nodes, num_nodes))
+    for i in range(num_nodes - 1):
+        distances[i, i + 1] = distances_raw[i]
+        distances[i + 1, i] = distances_raw[i]  #Distancia simétrica
+
+    #Inicializar partículas
+    positions, velocities = initialize_particles(num_particles, num_nodes)
+    best_local_positions = positions.copy()
+    best_global_position = np.random.permutation(num_nodes)
+    best_local_scores = np.full(num_particles, np.inf)
+    best_global_score = np.inf
+
+    #Algoritmo PSO para optimizar la ruta de entrega
+    for iteration in range(num_iterations):
+        for i in range(num_particles):
+            score = objective_function(positions[i], distances, fuel_costs, demands)
+            if score < best_local_scores[i]:
+                best_local_scores[i] = score
+                best_local_positions[i] = positions[i].copy()
+            if score < best_global_score:
+                best_global_score = score
+                best_global_position = positions[i].copy()
+
+        for i in range(num_particles):
+            velocities[i] = update_velocity(velocities[i], positions[i], best_local_positions[i], best_global_position, inertia_weight, cognitive_weight, social_weight)
+        positions = move_particles(positions, velocities, num_nodes)
+
+    #Añadir resultados a la tabla
+    table.add_row([route_id, nodes, [nodes[i] for i in best_global_position], round(best_global_score, 2)])
+
+#Finalizar medición del tiempo
+end_time = time.time()
+execution_time = end_time - start_time
+
+#Imprimir tabla de resultados y tiempo de ejecución
+print(table)
+print(f"Tiempo de ejecución total: {execution_time:.2f} segundos")
