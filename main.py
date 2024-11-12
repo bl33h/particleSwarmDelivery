@@ -117,11 +117,6 @@ def compare_algorithms():
     else:
         print(">> Ambos algoritmos obtuvieron costos promedio similares.")
 
-import pandas as pd
-import ast
-import graphviz
-from IPython.display import display
-
 def plot_route(route_id, results_pso, results_ga, csv_path="./data/routes.csv"):
     #Leer el archivo CSV para obtener las distancias y los nodos
     data = pd.read_csv(csv_path)
@@ -186,7 +181,7 @@ def ask_and_plot():
 
     size = len(pso_results)
     route_id = int(input(f"Ingrese el ID de la ruta que desea graficar (existen {size} rutas): "))
-    
+
     ga_results, mean_ga, std_ga = run_ga(filename)
     plot_route(route_id, pso_results, ga_results)
 
