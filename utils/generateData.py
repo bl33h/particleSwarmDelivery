@@ -21,7 +21,7 @@ import string
 # Semilla para reproducibilidad
 np.random.seed(42)
 
-def generate_data(num_lines=10, min_nodes=3, max_nodes=20):
+def generate_data(num_lines, min_nodes, max_nodes, filename):
     data = {
         "route_id": [],
         "nodes": [],
@@ -60,8 +60,8 @@ def generate_data(num_lines=10, min_nodes=3, max_nodes=20):
     df = pd.DataFrame(data)
     
     # Guardar en archivo CSV
-    df.to_csv("./data/routes.csv", index=False)
-    print("Archivo 'routes.csv' generado con éxito.")
+    df.to_csv(f"./data/{filename}.csv", index=False)
+    #print(f"Archivo '{filename}' generado con éxito.")
 
 # Generación de datos con rutas de entre 3 y 20 nodos
-generate_data(num_lines=10, min_nodes=3, max_nodes=20)
+#generate_data(num_lines=10, min_nodes=3, max_nodes=20)

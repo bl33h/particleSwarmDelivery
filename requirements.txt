@@ -1,5 +1,0 @@
-numpy
-pandas
-time
-prettytable
-ast

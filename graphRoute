@@ -1,0 +1,61 @@
+// Ruta ID 1 - PSO y GA
+digraph {
+	fontsize=16 label="Comparación de Rutas para Ruta ID 1
+PSO (costo: 496.72) vs GA (costo: 584.22)"
+	subgraph cluster_pso {
+		label="PSO - Costo: 496.72"
+		color=blue
+		PSO_H [label=H]
+		PSO_B [label=B]
+		PSO_H -> PSO_B [label="Dist: 40.92"]
+		PSO_B [label=B]
+		PSO_E [label=E]
+		PSO_B -> PSO_E [label="Dist: 32.73"]
+		PSO_E [label=E]
+		PSO_A [label=A]
+		PSO_E -> PSO_A [label="Dist: 31.57"]
+		PSO_A [label=A]
+		PSO_C [label=C]
+		PSO_A -> PSO_C [label="Dist: 18.18"]
+		PSO_C [label=C]
+		PSO_F [label=F]
+		PSO_C -> PSO_F [label="Dist: 27.31"]
+		PSO_F [label=F]
+		PSO_D [label=D]
+		PSO_F -> PSO_D [label="Dist: 34.21"]
+		PSO_D [label=D]
+		PSO_G [label=G]
+		PSO_D -> PSO_G [label="Dist: 52.55"]
+		PSO_G [label=G]
+		PSO_I [label=I]
+		PSO_G -> PSO_I [label="Dist: 31.62"]
+	}
+	subgraph cluster_ga {
+		label="GA - Costo: 584.22"
+		color=red
+		GA_B [label=B]
+		GA_D [label=D]
+		GA_B -> GA_D [label="Dist: 36.28"]
+		GA_D [label=D]
+		GA_G [label=G]
+		GA_D -> GA_G [label="Dist: 52.55"]
+		GA_G [label=G]
+		GA_H [label=H]
+		GA_G -> GA_H [label="Dist: 72.04"]
+		GA_H [label=H]
+		GA_F [label=F]
+		GA_H -> GA_F [label="Dist: 31.99"]
+		GA_F [label=F]
+		GA_C [label=C]
+		GA_F -> GA_C [label="Dist: 27.31"]
+		GA_C [label=C]
+		GA_I [label=I]
+		GA_C -> GA_I [label="Dist: 52.09"]
+		GA_I [label=I]
+		GA_E [label=E]
+		GA_I -> GA_E [label="Dist: 52.77"]
+		GA_E [label=E]
+		GA_A [label=A]
+		GA_E -> GA_A [label="Dist: 31.57"]
+	}
+}

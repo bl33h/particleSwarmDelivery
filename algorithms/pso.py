@@ -58,9 +58,9 @@ def move_particles(positions, velocities, num_nodes):
     return np.array(new_positions)
 
 # Ejecutar PSO para cada ruta en el archivo CSV
-def run_pso():
+def run_pso(filename):
     # Leer datos desde el archivo CSV
-    data = pd.read_csv("./data/routes.csv")
+    data = pd.read_csv(f"./data/{filename}.csv")
     
     mean_cost = 0
     std = 0

@@ -50,9 +50,9 @@ def mutate(route):
     return route
 
 # Función para ejecutar el algoritmo GA
-def run_ga():
+def run_ga(filename):
     # Leer datos desde el archivo CSV
-    data = pd.read_csv("./data/routes.csv")
+    data = pd.read_csv(f"./data/{filename}.csv")
     
     mean_cost = 0
     std = 0
