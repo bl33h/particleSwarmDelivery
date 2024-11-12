@@ -11,7 +11,7 @@
  * Recursos: VSCode
  * Historial: 
     - Creado el 09/11/2024
-    - Modificado el 09/11/2024
+    - Modificado el 11/11/2024
 """
 
 import time
@@ -19,12 +19,21 @@ from algorithms.pso import run_pso
 from algorithms.ga import run_ga
 from prettytable import PrettyTable
 import numpy as np
+import pandas as pd
+import ast
+import graphviz
+from IPython.display import display
 
 def print_results(results):
     table = PrettyTable()
-    table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
+    table.field_names = ["route_id", "mejor_ruta", "costo_minimo"]
+    
     for result in results:
-        table.add_row(result)
+        route_id = result[0]
+        best_route = " -> ".join(result[2])  #Convertir a formato "A -> B -> C"
+        best_cost = result[3]
+        table.add_row([route_id, best_route, best_cost])
+    
     print(table)
 
 # pso algorithm
@@ -102,7 +111,6 @@ def compare_algorithms():
         print(">> GA obtuvo un menor costo promedio.")
     else:
         print(">> Ambos algoritmos obtuvieron costos promedio similares.")
-    
 
 def main():
     while True:

@@ -11,7 +11,7 @@
  * Recursos: VSCode
  * Historial: 
     - Creado el 22/10/2024
-    - Modificado el 09/11/2024
+    - Modificado el 11/11/2024
 """
 
 import numpy as np
@@ -25,19 +25,19 @@ inertia_weight = 0.5
 cognitive_weight = 1.5
 social_weight = 1.5
 
-#Inicializar las posiciones y velocidades
+# Inicializar las posiciones y velocidades
 def initialize_particles(num_particles, num_nodes):
     positions = np.array([np.random.permutation(num_nodes) for _ in range(num_particles)])
     velocities = [np.zeros(num_nodes) for _ in range(num_particles)]  # Velocidades iniciales como swaps
     return positions, velocities
 
-#Función objetivo: calcular el costo total de una ruta específica
+# Función objetivo: calcular el costo total de una ruta específica
 def objective_function(route, distances, fuel_costs, demands):
     total_distance = sum(distances[route[i], route[i + 1]] for i in range(len(route) - 1))
     total_fuel_cost = sum(fuel_costs[route[i]] * demands[route[i]] for i in range(len(route)))
     return total_distance + total_fuel_cost
 
-#Actualización de velocidades y posiciones
+# Actualización de velocidades y posiciones
 def update_velocity(velocity, position, best_local, best_global, inertia_weight, cognitive_weight, social_weight):
     r1, r2 = np.random.rand(), np.random.rand()
     cognitive_component = cognitive_weight * r1 * (best_local - position)
@@ -45,11 +45,11 @@ def update_velocity(velocity, position, best_local, best_global, inertia_weight,
     new_velocity = inertia_weight * velocity + cognitive_component + social_component
     return new_velocity
 
-#Función para mover las partículas y mantenerlas como permutaciones
+# Función para mover las partículas y mantenerlas como permutaciones
 def move_particles(positions, velocities, num_nodes):
     new_positions = []
     for position, velocity in zip(positions, velocities):
-        #Permutar posiciones en base a la velocidad
+        # Permutar posiciones en base a la velocidad
         permuted_position = position.copy()
         for i in range(num_nodes):
             swap_index = int(abs(velocity[i]) % num_nodes)
@@ -57,9 +57,9 @@ def move_particles(positions, velocities, num_nodes):
         new_positions.append(permuted_position)
     return np.array(new_positions)
 
-#Ejecutar PSO para cada ruta en el archivo CSV
+# Ejecutar PSO para cada ruta en el archivo CSV
 def run_pso():
-    #Leer datos desde el archivo CSV
+    # Leer datos desde el archivo CSV
     data = pd.read_csv("./data/routes.csv")
     
     mean_cost = 0
@@ -67,7 +67,7 @@ def run_pso():
 
     results = []
     
-    #Ejecutar PSO para cada ruta en el archivo CSV
+    # Ejecutar PSO para cada ruta en el archivo CSV
     for index, row in data.iterrows():
         route_id = row["route_id"]
         nodes = ast.literal_eval(row["nodes"])
@@ -75,21 +75,18 @@ def run_pso():
         fuel_costs = ast.literal_eval(row["fuel_costs"])
         distances_raw = ast.literal_eval(row["distances"])
 
-        #Crear una matriz de distancias simétrica para el PSO (llenar diagonales con 0)
-        num_nodes = len(nodes)
-        distances = np.zeros((num_nodes, num_nodes))
-        for i in range(num_nodes - 1):
-            distances[i, i + 1] = distances_raw[i]
-            distances[i + 1, i] = distances_raw[i]  #Distancia simétrica
+        # Convertir la matriz de distancias de lista de listas a un array de numpy
+        distances = np.array(distances_raw)
 
-        #Inicializar partículas
+        # Inicializar partículas
+        num_nodes = len(nodes)
         positions, velocities = initialize_particles(num_particles, num_nodes)
         best_local_positions = positions.copy()
         best_global_position = np.random.permutation(num_nodes)
         best_local_scores = np.full(num_particles, np.inf)
         best_global_score = np.inf
 
-        #Algoritmo PSO para optimizar la ruta de entrega
+        # Algoritmo PSO para optimizar la ruta de entrega
         for iteration in range(num_iterations):
             for i in range(num_particles):
                 score = objective_function(positions[i], distances, fuel_costs, demands)
@@ -109,7 +106,7 @@ def run_pso():
         result = [route_id, nodes, [nodes[i] for i in best_global_position], round(best_global_score, 2)]
         results.append(result)
         
-        #Calcular el costo promedio y la desviación estándar de los costos mínimos
+        # Calcular el costo promedio y la desviación estándar de los costos mínimos
         mean_cost += best_global_score
         std += best_global_score ** 2
     
