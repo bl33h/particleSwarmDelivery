@@ -17,8 +17,6 @@
 import numpy as np
 import pandas as pd
 import ast
-from prettytable import PrettyTable
-import time
 
 # Parámetros del PSO
 num_particles = 30
@@ -64,12 +62,10 @@ def run_pso():
     #Leer datos desde el archivo CSV
     data = pd.read_csv("./data/routes.csv")
     
-    #Tabla para mostrar resultados
-    table = PrettyTable()
-    table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
-    
     mean_cost = 0
     std = 0
+
+    results = []
     
     #Ejecutar PSO para cada ruta en el archivo CSV
     for index, row in data.iterrows():
@@ -109,9 +105,9 @@ def run_pso():
                     velocities[i], positions[i], best_local_positions[i], 
                     best_global_position, inertia_weight, cognitive_weight, social_weight)
             positions = move_particles(positions, velocities, num_nodes)
-        
-        #Añadir resultados a la tabla
-        table.add_row([route_id, nodes, [nodes[i] for i in best_global_position], round(best_global_score, 2)])
+
+        result = [route_id, nodes, [nodes[i] for i in best_global_position], round(best_global_score, 2)]
+        results.append(result)
         
         #Calcular el costo promedio y la desviación estándar de los costos mínimos
         mean_cost += best_global_score
@@ -120,4 +116,4 @@ def run_pso():
     mean_cost /= len(data)
     std = np.sqrt(std / len(data) - mean_cost ** 2)
     
-    return table, mean_cost, std
+    return results, mean_cost, std

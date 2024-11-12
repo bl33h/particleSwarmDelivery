@@ -17,8 +17,6 @@
 import numpy as np
 import pandas as pd
 import ast
-from prettytable import PrettyTable
-import time
 
 # parámetros iniciales GA
 population_size = 20        # Tamaño de la población
@@ -56,12 +54,10 @@ def run_ga():
     #Leer datos desde el archivo CSV
     data = pd.read_csv("./data/routes.csv")
     
-    # tabla para mostrar resultados
-    table = PrettyTable()
-    table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
-    
     mean_cost = 0
     std = 0
+
+    results = []
     
     # ejecución de GA para cada ruta en el archivo
     for index, row in data.iterrows():
@@ -108,7 +104,9 @@ def run_ga():
         # selección de la mejor solución final
         best_route = population[np.argmin([fitness(route, distances, fuel_costs, demands) for route in population])]
         best_route_cost = fitness(best_route, distances, fuel_costs, demands)
-        table.add_row([route_id, nodes, [nodes[i] for i in best_route], round(best_route_cost, 2)])
+
+        result = [route_id, nodes, [nodes[i] for i in best_route], round(best_route_cost, 2)]
+        results.append(result)
         
         mean_cost += best_route_cost
         std += best_route_cost ** 2
@@ -116,4 +114,4 @@ def run_ga():
     mean_cost /= len(data)
     std = np.sqrt(std / len(data) - mean_cost ** 2)
     
-    return table, mean_cost, std
+    return results, mean_cost, std

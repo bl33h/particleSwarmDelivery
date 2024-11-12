@@ -59,5 +59,5 @@ def generate_data(num_lines=100, min_nodes=20, max_nodes=10000):
     df.to_csv("./data/routes.csv", index=False)
     print("Archivo 'routes.csv' generado con éxito.")
 
-#Generar 100 líneas
-generate_data(num_lines=100, min_nodes=3, max_nodes=10)
+#Generación de data
+generate_data(num_lines=10, min_nodes=3, max_nodes=10)
