@@ -182,8 +182,11 @@ def plot_route(route_id, results_pso, results_ga, csv_path="./data/routes.csv"):
     #display(dot)
 
 def ask_and_plot():
-    route_id = int(input("Ingrese el ID de la ruta que desea graficar: "))
     pso_results, mean_pso, std_pso = run_pso(filename)
+
+    size = len(pso_results)
+    route_id = int(input(f"Ingrese el ID de la ruta que desea graficar (existen {size} rutas): "))
+    
     ga_results, mean_ga, std_ga = run_ga(filename)
     plot_route(route_id, pso_results, ga_results)
 
