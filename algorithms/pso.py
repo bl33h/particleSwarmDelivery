@@ -68,6 +68,9 @@ def run_pso():
     table = PrettyTable()
     table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
     
+    mean_cost = 0
+    std = 0
+    
     #Ejecutar PSO para cada ruta en el archivo CSV
     for index, row in data.iterrows():
         route_id = row["route_id"]
@@ -109,5 +112,12 @@ def run_pso():
         
         #Añadir resultados a la tabla
         table.add_row([route_id, nodes, [nodes[i] for i in best_global_position], round(best_global_score, 2)])
-
-    return table
+        
+        #Calcular el costo promedio y la desviación estándar de los costos mínimos
+        mean_cost += best_global_score
+        std += best_global_score ** 2
+    
+    mean_cost /= len(data)
+    std = np.sqrt(std / len(data) - mean_cost ** 2)
+    
+    return table, mean_cost, std

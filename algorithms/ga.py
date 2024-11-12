@@ -60,6 +60,9 @@ def run_ga():
     table = PrettyTable()
     table.field_names = ["route_id", "nodes", "mejor_ruta", "costo_minimo"]
     
+    mean_cost = 0
+    std = 0
+    
     # ejecución de GA para cada ruta en el archivo
     for index, row in data.iterrows():
         route_id = row["route_id"]
@@ -106,5 +109,11 @@ def run_ga():
         best_route = population[np.argmin([fitness(route, distances, fuel_costs, demands) for route in population])]
         best_route_cost = fitness(best_route, distances, fuel_costs, demands)
         table.add_row([route_id, nodes, [nodes[i] for i in best_route], round(best_route_cost, 2)])
+        
+        mean_cost += best_route_cost
+        std += best_route_cost ** 2
 
-    return table
+    mean_cost /= len(data)
+    std = np.sqrt(std / len(data) - mean_cost ** 2)
+    
+    return table, mean_cost, std

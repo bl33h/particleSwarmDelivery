@@ -17,6 +17,7 @@
 import time
 from algorithms.pso import run_pso
 from algorithms.ga import run_ga
+import numpy as np
 
 # pso algorithm
 def run_pso_algorithm():
@@ -41,12 +42,12 @@ def compare_algorithms():
     print("\n--- Comparativa entre PSO y GA ---")
 
     start_pso = time.time()
-    pso_results = run_pso()
+    pso_results, mean_pso, std_pso = run_pso()
     end_pso = time.time()
     pso_time = end_pso - start_pso
 
     start_ga = time.time()
-    ga_results = run_ga()
+    ga_results, mean_ga, std_ga = run_ga()
     end_ga = time.time()
     ga_time = end_ga - start_ga
 
@@ -65,6 +66,24 @@ def compare_algorithms():
         print(">> GA fue más rápido que PSO.")
     else:
         print(">> Ambos algoritmos tuvieron tiempos de ejecución similares.")
+        
+    # costs comparison
+    print(f"\nDesviación estándar de los costos mínimos:")
+    print(f"PSO: {std_pso:.2f}")
+    print(f"GA: {std_ga:.2f}")
+    
+    print(f"\nCosto promedio de las rutas:")
+    print(f"PSO: {mean_pso:.2f}")
+    print(f"GA: {mean_ga:.2f}")
+    
+    if mean_pso < mean_ga:
+        print(">> PSO obtuvo un menor costo promedio.")
+    elif mean_ga < mean_pso:
+        print(">> GA obtuvo un menor costo promedio.")
+    else:
+        print(">> Ambos algoritmos obtuvieron costos promedio similares.")
+    
+    
 
 def main():
     while True:
